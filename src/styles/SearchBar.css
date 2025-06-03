@@ -1,0 +1,23 @@
+.searchBar {
+    display: flex;
+    min-height: 38px;
+    flex-wrap: wrap;
+    padding: 1.5rem;
+    align-items: center;
+    margin: 1rem auto;
+    max-width: 800px;
+}
+
+
+input{
+    
+    margin-right: 0.9rem;
+    min-height: 50px;
+    font-size: 18px;
+    width: 97%;
+    text-align: center;
+    padding-right: 100px;
+    border-radius: 0.5rem;
+    
+}
+
