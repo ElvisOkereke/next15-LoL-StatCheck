@@ -2,59 +2,54 @@
 import React from 'react'
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect }  from 'react';
-import { getUserbyGametagAction } from '../components/actions/dbActions';
+import { getUserbyGametagAction, createUserAction } from '../components/actions/dbActions';
 
 
 function Profile() {
     const searchParams = useSearchParams();
-    
     const platformQuery = searchParams.get('platform') ? `${searchParams.get('platform')}` : 'americas';
     const regionQuery = searchParams.get('region') ? `${searchParams.get('region')}` : 'na1';
     let searchQuery = searchParams.get('search');
-    const tagLine = searchQuery ? searchQuery.split('#')[1].trim() : '';
-    const gameName = searchQuery ? searchQuery.split('#')[0].trim() : '';
+
+    //const tagLine = searchQuery ? searchQuery.split('#')[1].trim() : '';
+    //const gameName = searchQuery ? searchQuery.split('#')[0].trim() : '';
+    //const API_KEY = process.env.NEXT_PUBLIC_RIOT_API_KEY
+
     searchQuery = searchQuery ? searchQuery.split('#')[0].trim() + searchQuery.split('#')[1].trim() : '';
-    const API_KEY = process.env.NEXT_PUBLIC_RIOT_API_KEY  // Replace with your actual API key
     
     
     const [profileData, setProfileData] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    //const [matchesData, setMatchesData] = useState<any>(null);
-    //const [puuid, setPuuid] = useState<string | null>(null);
 
-    
-    const fetchUser = async () => { // fetch user from db by gameName and tagLine
-
-        let userData = await getUserbyGametagAction(searchQuery as string);
-        if (!userData.success) {
-            throw new Error(userData.error);
-        }
-
-        return userData.data;
-    }
     
     useEffect(() => {
-        const fetchProfile = async () => {
+        const fetchUser = async () => { // fetch user from db by gameName and tagLine
             setLoading(true);
             setError(null);
+            let userData;
             try {
-                const response = await fetch(`https://${platformQuery}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}?api_key=${API_KEY}`);
-                if (!response.ok) {
-                    throw new Error('Profile fetch failed');
+                userData = await getUserbyGametagAction(searchQuery as string);
+                if (!userData.success) {
+                    let createUserResponse = await createUserAction(searchQuery as string, platformQuery);
+                    if (createUserResponse.success) {
+                        userData = createUserResponse.data;
+                        setProfileData(userData);
+                    } else {
+                        throw new Error(createUserResponse.error);
+                    }
                 }
-                const data = await response.json();
-                setProfileData(data);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (error: any) {
+                console.error('Error fetching user:', error);
+                setError(error.message);
             } finally {
-                //setPuuid(profileData.puuid);
-                setLoading(false);        
-            }
-        };
+                    
+                    setLoading(false);        
+                }           
+        }
         
-        fetchProfile();
-    }, [platformQuery, gameName, tagLine, API_KEY]);
+        fetchUser();
+    }, [searchQuery, platformQuery]); // Re-run when searchQuery or platformQuery changes
 
 
 
