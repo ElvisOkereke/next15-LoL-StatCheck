@@ -11,8 +11,8 @@ function Profile() {
     const regionQuery = searchParams.get('region') ? `${searchParams.get('region')}` : 'na1';
     let searchQuery = searchParams.get('search');
 
-    //const tagLine = searchQuery ? searchQuery.split('#')[1].trim() : '';
-    //const gameName = searchQuery ? searchQuery.split('#')[0].trim() : '';
+    const tagLine = searchQuery ? searchQuery.split('#')[1].trim() : '';
+    const gameName = searchQuery ? searchQuery.split('#')[0].trim() : '';
     //const API_KEY = process.env.NEXT_PUBLIC_RIOT_API_KEY
 
     searchQuery = searchQuery ? searchQuery.split('#')[0].trim() + searchQuery.split('#')[1].trim() : '';
@@ -32,11 +32,11 @@ function Profile() {
             try {
                 userData = await getUserbyGametagAction(searchQuery as string);
                 if (userData.data === null) {
-                    let createUserResponse = await createUserAction(searchQuery as string, platformQuery);
-                    console.log('createUserResponse', createUserResponse.success);
+                    let createUserResponse = await createUserAction(gameName, tagLine, platformQuery);
+                    //console.log('createUserResponse', createUserResponse.success);
                     if (createUserResponse.success) {
                         userData = createUserResponse.data;
-                        setProfileData(userData);
+                        setProfileData(JSON.parse(userData ?? '{}'));
                     } else {
                         throw new Error(createUserResponse.error);
                     }
@@ -46,6 +46,7 @@ function Profile() {
                 }
                 else{
                     if (userData.data){
+                        //console.log('userData.data', userData.data);
                         setProfileData(userData.data);
                     }
                 } 
@@ -79,14 +80,16 @@ function Profile() {
         <h1 style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>{searchQuery}'s Profile Page ({regionQuery}) </h1>
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
             <img
-            src="https://via.placeholder.com/150"
+            src="./background.jpg"
             alt="Profile"
             style={{ borderRadius: '50%', border: '2px solid White' }}
+            width="150"
+            height="150"
             />
         </div>
         <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>
             <p>Username: {searchQuery}</p>
-            <p>Platform: {platformQuery}</p>
+            <p>Platform: {profileData.platform}</p>
             <p>PUUID: {profileData.puuid}</p>
             {//<p>Game Name: {matchesData}</p>//
             }

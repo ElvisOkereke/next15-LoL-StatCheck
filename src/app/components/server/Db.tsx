@@ -1,5 +1,5 @@
 import 'server-only'
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient, ServerApiVersion, WithId } from 'mongodb';
 import { use } from 'react';
 
 // Extend the global object to include _mongoClientPromise
@@ -38,14 +38,13 @@ export async function getDatabase(dbName = 'opgg') {
   }
 }
 
-export async function createUser(gameTag: string, platformQuery:string) {
+export async function createUser(gameName: string, tagLine:string, platformQuery:string) {
   try {
     const db = await getDatabase();
 
-    const fetchData = await fetchProfilefromRiot(gameTag, platformQuery);
+    const fetchData = await fetchProfilefromRiot(gameName, tagLine, platformQuery);
 
-
-    const result = await db.collection('users').insertOne(fetchData);
+    const result = await db.collection('users').insertOne(JSON.parse(fetchData));
     if (result.acknowledged) return fetchData;
     throw new Error('Failed to add user to collection');
     
@@ -60,48 +59,49 @@ export async function getUserbyGametag(gameTag: string) {
   try {
     const db = await getDatabase();
     const user = await db.collection('users').findOne({ gametag: gameTag });
-    
+    console.log('BEFORE IF getUserbyGametag:', user);
     let res;
     if (user !== null) {
-      console.log('getUserbyGametag:', user.puuid, user.gametag, user.platformQuery);
+      console.log('getUserbyGametag:', user.puuid, user.gametag, user.platform);
       res = {
       gametag: user.gametag,
       puuid: user.puuid,
       matches: user.matches,
-      platform: user.platformQuery
-
-    }}
-    
+      platform: user.platform
+      };
     return res;
+    }
+  return user;
+    
+    
   } catch (error) {
     console.error('Error fetching users:', error);
     throw error;
   }
 }
 
-export const fetchProfilefromRiot = async (gameTag:string, platformQuery:string, API_KEY:string = process.env.NEXT_PUBLIC_RIOT_API_KEY as string) => {
-           
-    const tagLine = gameTag.substring(gameTag.length - 4);
-    const gameName = gameTag.substring(0, gameTag.length - 4).trim();
+export const fetchProfilefromRiot = async (gameName:string, tagLine: string,platformQuery:string, API_KEY:string = process.env.NEXT_PUBLIC_RIOT_API_KEY as string) => {
+    
     const response = await fetch(`https://${platformQuery}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}?api_key=${API_KEY}`);
     if (!response.ok) {
-        throw new Error (`Failed to fetch profile for ${gameName+tagLine} on ${platformQuery}`)
+        throw new Error (`Failed to fetch profile for ${gameName+tagLine} on ${platformQuery} @ https://${platformQuery}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${gameName}/${tagLine}?api_key=${API_KEY}`)
     }
 
     const data = await response.json();
     const puuid = data.puuid as string;
     const matchResponse = await fetch(`https://${platformQuery}.api.riotgames.com/lol/match/v5/matches/by-puuid/${puuid}/ids?start=0&count=20&api_key=${API_KEY}`);
     if (!matchResponse.ok) {
-        throw new Error(`Failed to fetch matches for ${gameTag} on ${platformQuery}`);
+        throw new Error(`Failed to fetch matches for ${gameName+tagLine} on ${platformQuery}`);
     }
     const matches = await matchResponse.json() as string[];
-    const  userData = {
-      gametag: gameTag,
+    const userData = {
+      gametag: gameName+tagLine,
       puuid: puuid,
       matches: matches,
-      platform: platformQuery,
-    }
-    return userData;
+      platform: platformQuery
+    } 
+    //console.log('fetchProfilefromRiot:', userData);
+    return JSON.stringify(userData);
 };
 
 // Server Component that uses these utilities

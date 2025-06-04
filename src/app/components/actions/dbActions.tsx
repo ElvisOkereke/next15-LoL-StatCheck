@@ -12,9 +12,9 @@ export async function getUserbyGametagAction(gametag: string) {
   }
 }
 
-export async function createUserAction(gametag: string, platformQuery: string) {
+export async function createUserAction(gameName: string, tagLine: string, platformQuery: string) {
   try {
-    const result = await createUser(gametag, platformQuery);
+    const result = await createUser(gameName, tagLine, platformQuery);
     //revalidatePath('/profile'); // Revalidate the profile page to reflect changes
 
     return { success: true, data: result };
