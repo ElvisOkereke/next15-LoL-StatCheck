@@ -5,10 +5,7 @@ import {createUser, getUserbyGametag} from '../server/Db';
 
 export async function getUserbyGametagAction(gametag: string) {
   try {
-    const user = await getUserbyGametag(gametag);
-    if (user === null) {
-      throw new Error(`User with gametag ${gametag} not found`);
-    }
+    const user = await getUserbyGametag(gametag); //null if not user found in db
     return { success: true, data: user };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -18,7 +15,7 @@ export async function getUserbyGametagAction(gametag: string) {
 export async function createUserAction(gametag: string, platformQuery: string) {
   try {
     const result = await createUser(gametag, platformQuery);
-    revalidatePath('/profile'); // Revalidate the profile page to reflect changes
+    //revalidatePath('/profile'); // Revalidate the profile page to reflect changes
 
     return { success: true, data: result };
   } catch (error) {

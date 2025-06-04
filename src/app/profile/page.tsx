@@ -21,6 +21,7 @@ function Profile() {
     const [profileData, setProfileData] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
+    //console.log('\nHEEEERRRRREEE\n');
 
     
     useEffect(() => {
@@ -30,8 +31,9 @@ function Profile() {
             let userData;
             try {
                 userData = await getUserbyGametagAction(searchQuery as string);
-                if (!userData.success) {
+                if (userData.data === null) {
                     let createUserResponse = await createUserAction(searchQuery as string, platformQuery);
+                    console.log('createUserResponse', createUserResponse.success);
                     if (createUserResponse.success) {
                         userData = createUserResponse.data;
                         setProfileData(userData);
@@ -39,16 +41,24 @@ function Profile() {
                         throw new Error(createUserResponse.error);
                     }
                 }
+                else if (!userData.success) {
+                    throw new Error(userData.error);
+                }
+                else{
+                    if (userData.data){
+                        setProfileData(userData.data);
+                    }
+                } 
             } catch (error: any) {
                 console.error('Error fetching user:', error);
                 setError(error.message);
             } finally {
-                    
                     setLoading(false);        
                 }           
         }
         
         fetchUser();
+        
     }, [searchQuery, platformQuery]); // Re-run when searchQuery or platformQuery changes
 
 
