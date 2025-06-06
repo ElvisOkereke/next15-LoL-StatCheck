@@ -1,7 +1,7 @@
 
 'use server';
-import { revalidatePath } from 'next/cache';
-import {createUser, getUserbyGametag} from '../server/Db';
+import { platform } from 'os';
+import {createUser, getUserbyGametag, getMatchDataList, createMatches} from '../server/Db';
 
 export async function getUserbyGametagAction(gametag: string) {
   try {
@@ -15,8 +15,24 @@ export async function getUserbyGametagAction(gametag: string) {
 export async function createUserAction(gameName: string, tagLine: string, platformQuery: string) {
   try {
     const result = await createUser(gameName, tagLine, platformQuery);
-    //revalidatePath('/profile'); // Revalidate the profile page to reflect changes
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
 
+export async function getMatchDataListAction(matchIdList: string[], platformQuery: string) {
+  try {
+    const result = await getMatchDataList(matchIdList, platformQuery);
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function createMatchesAction(matchIdList: string[], platformQuery: string) {
+  try {
+    const result = await createMatches(matchIdList, platformQuery);
     return { success: true, data: result };
   } catch (error) {
     return { success: false, error: error instanceof Error ? error.message : String(error) };

@@ -1,8 +1,10 @@
 'use client'
-import React from 'react'
+import React, { use } from 'react'
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect }  from 'react';
-import { getUserbyGametagAction, createUserAction } from '../components/actions/dbActions';
+import { getUserbyGametagAction, createUserAction, getMatchDataListAction, createMatchesAction } from '../components/actions/dbActions';
+import SearchBar from '../components/client/SearchBar';
+import { match } from 'assert';
 
 
 function Profile() {
@@ -13,15 +15,18 @@ function Profile() {
 
     const tagLine = searchQuery ? searchQuery.split('#')[1].trim() : '';
     const gameName = searchQuery ? searchQuery.split('#')[0].trim() : '';
-    //const API_KEY = process.env.NEXT_PUBLIC_RIOT_API_KEY
 
     searchQuery = searchQuery ? searchQuery.split('#')[0].trim() + searchQuery.split('#')[1].trim() : '';
-    
     
     const [profileData, setProfileData] = useState<any>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
-    //console.log('\nHEEEERRRRREEE\n');
+    const [matchData, setMatchData] = useState<any>(null);
+    const [matchesLoading, setMatchesLoading] = useState<boolean>(true);
+    const [matchesError, setMatchesError] = useState<string | null>(null);
+    let renderedMatchesR = 20;
+    let renderedMatchesL = 0;
+
 
     
     useEffect(() => {
@@ -31,25 +36,15 @@ function Profile() {
             let userData;
             try {
                 userData = await getUserbyGametagAction(searchQuery as string);
-                if (userData.data === null) {
+                if (userData.success && userData.data === null) {
                     let createUserResponse = await createUserAction(gameName, tagLine, platformQuery);
-                    //console.log('createUserResponse', createUserResponse.success);
                     if (createUserResponse.success) {
-                        userData = createUserResponse.data;
-                        setProfileData(JSON.parse(userData ?? '{}'));
-                    } else {
-                        throw new Error(createUserResponse.error);
-                    }
+                        userData = createUserResponse;
+                        setProfileData(JSON.parse(userData.data ?? '{}'));
+                    } else throw new Error(createUserResponse.error);
                 }
-                else if (!userData.success) {
-                    throw new Error(userData.error);
-                }
-                else{
-                    if (userData.data){
-                        //console.log('userData.data', userData.data);
-                        setProfileData(userData.data);
-                    }
-                } 
+                else if (userData.success) setProfileData(userData.data);
+                else if (!userData.success) throw new Error(userData.error);   
             } catch (error: any) {
                 console.error('Error fetching user:', error);
                 setError(error.message);
@@ -58,10 +53,59 @@ function Profile() {
                 }           
         }
         
-        fetchUser();
-        
+        fetchUser();   
     }, [searchQuery, platformQuery]); // Re-run when searchQuery or platformQuery changes
 
+    useEffect(() => {
+        const fetchMatches= async () => { // fetch user from db by gameName and tagLine
+            setMatchesLoading(true);
+            setMatchesError(null);
+            let matchesData;
+            
+            try {
+                if (profileData.matches === null) {
+                setMatchesLoading(true);
+                return;
+                }
+                matchesData = await getMatchDataListAction(profileData.matches.slice(renderedMatchesL,renderedMatchesR), platformQuery);
+                console.log('matchesData', matchesData);
+                if (matchesData.data === null) {
+                    let createMatchesResponse = await createMatchesAction(profileData.matches.slice(renderedMatchesL,renderedMatchesR), platformQuery);
+                    //console.log('createUserResponse', createUserResponse.success);
+                    if (createMatchesResponse.success) {
+                        matchesData = createMatchesResponse;
+                        if (matchData) { //TODO: pagination case, add button to load more matches
+                            setMatchData(matchData + (matchesData.data ?? []));
+                        }
+                        else{
+                            setMatchData((matchesData.data ?? []));
+                        }
+                    } else {
+                        throw new Error(createMatchesResponse.error);
+                    }
+                }
+                else if (!matchesData.success) {
+                    throw new Error(matchesData.error);
+                }
+                else{
+                    if (matchesData.data){
+                        setMatchData(matchesData.data);
+                        //console.log('userData.data', matchData);
+                        //matchList.push(...(matchesData.data ?? []));
+                    }
+                }
+            } catch (error: any) {
+                console.error('Error fetching user:', error);
+                setMatchesError(error.message);
+            } finally {
+                    setMatchesLoading(false);     
+                    renderedMatchesL += 20;
+                    renderedMatchesR += 20;   
+                }           
+        }
+        
+        fetchMatches();
+    }, [profileData]);
 
 
 
@@ -75,8 +119,10 @@ function Profile() {
     if (error) {
         return <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>{error}</div>;
     }
+   
   return (
-    <div>   
+    <div>
+        <SearchBar/>   
         <h1 style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>{searchQuery}'s Profile Page ({regionQuery}) </h1>
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
             <img
@@ -87,14 +133,26 @@ function Profile() {
             height="150"
             />
         </div>
+        
         <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>
             <p>Username: {searchQuery}</p>
             <p>Platform: {profileData.platform}</p>
             <p>PUUID: {profileData.puuid}</p>
-            {//<p>Game Name: {matchesData}</p>//
-            }
         </div>
-      
+        <div>
+            {matchesError && <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>{matchesError}</div>}
+            {matchesLoading ? (
+                <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>Loading Matches...</div>
+            ) : (
+                <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>
+                    {Array.isArray(matchData) && matchData.length > 0
+                        ? matchData.map((match: any, idx: number) => (
+                            <div key={idx}>{match}</div>
+                        ))
+                        : "No matches found."}
+                </div>
+            )}
+        </div>
     </div>
   )
 }
