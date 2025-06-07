@@ -94,12 +94,13 @@ export async function getMatchDataList(matchIdList: string[], platformQuery:stri
         //match.delete('_id'); // Remove the MongoDB _id field
         console.log('getMatchDataList match:', match);
         const matchObject = match as WithId<MatchData>;
-        objectList.push(matchObject);//TODO .toObject is not a function, need to convert to plain object
+        objectList.push(matchObject);
       }
     }
     //console.log('objectList', objectList);
     
-    if (objectList.length === 0) {
+    if (objectList.every((item) => item === null)) {
+      console.log('No matches found in the database, fetching from Riot API');
       return null;
     }
     const fetchData = await fetchMatchesfromRiot(leftovers, platformQuery);
@@ -166,7 +167,7 @@ export async function createMatchElements(matchDataList: MatchData[], platformQu
     matchDataList.map((matchData) => {
       const element:React.ReactElement = (
         <div className='match-element' key={matchData.metadata.matchId} style={{ border: '1px solid #ccc', padding: '10px', margin: '10px 0'}}>
-          <h3 style={{ color: 'White' }}>Match ID: {matchData.metadata.matchId}</h3>
+          <h3>Match ID: {matchData.metadata.matchId}</h3>
           <p>Platform: {platformQuery}</p>
           <p>Game Mode: {matchData.info.gameMode}</p>
           <p>Game Type: {matchData.info.gameType}</p>
