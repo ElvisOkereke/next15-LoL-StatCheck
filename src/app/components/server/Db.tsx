@@ -1,6 +1,6 @@
 import 'server-only'
 import { MongoClient, ServerApiVersion, WithId } from 'mongodb';
-import { platform } from 'os';
+
 
 // Extend the global object to include _mongoClientPromise
 declare global {
@@ -38,23 +38,6 @@ export async function getDatabase(dbName = 'opgg') {
   }
 }
 
-export async function createUser(gameName: string, tagLine:string, platformQuery:string) {
-  try {
-    const db = await getDatabase();
-
-    const fetchData = await fetchProfilefromRiot(gameName, tagLine, platformQuery);
-
-    const result = await db.collection('users').insertOne(JSON.parse(fetchData));
-    if (result.acknowledged) return fetchData;
-    throw new Error('Failed to add user to collection');
-    
-
-  } catch (error) {
-    console.error('Error creating user:', error);
-    throw error;
-  }
-}
-
 export async function getUserbyGametag(gameTag: string) {
   try {
     const db = await getDatabase();
@@ -80,6 +63,64 @@ export async function getUserbyGametag(gameTag: string) {
   }
 }
 
+export async function createUser(gameName: string, tagLine:string, platformQuery:string) {
+  try {
+    const db = await getDatabase();
+
+    const fetchData = await fetchProfilefromRiot(gameName, tagLine, platformQuery);
+
+    const result = await db.collection('users').insertOne(JSON.parse(fetchData));
+    if (result.acknowledged) return fetchData;
+    throw new Error('Failed to add user to collection');
+    
+
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  }
+}
+
+
+export async function getMatchDataListfromDB(matchIdList: string[], platformQuery:string) {
+  try {
+    const db = await getDatabase();
+    let objectList = [];
+    let leftovers = []
+    for (const matchId of matchIdList) {
+      const match = await db.collection('matches').findOne({ "metadata.matchId": matchId });
+      if (match === null) {
+        leftovers.push(matchId);
+        objectList.push(null);
+      } else {
+        const matchObject = match as WithId<MatchData>;
+        objectList.push(matchObject);
+      }
+    }
+    
+    if (objectList.every((item) => item === null)) {
+      console.log('No matches found in the database, fetching from Riot API');
+      return null;
+    }
+    const fetchData = await fetchMatchesfromRiot(leftovers, platformQuery);
+
+    for (let i = 0; i < objectList.length; i++) {
+      if (objectList[i] === null) {
+         objectList[i] = fetchData[0];
+        fetchData.shift();
+      }
+    }
+
+
+  return objectList.filter((item): item is MatchData => item !== null);
+    
+    
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
+}
+
+
 export async function getMatchDataList(matchIdList: string[], platformQuery:string) {
   try {
     const db = await getDatabase();
@@ -91,13 +132,10 @@ export async function getMatchDataList(matchIdList: string[], platformQuery:stri
         leftovers.push(matchId);
         objectList.push(null);
       } else {
-        //match.delete('_id'); // Remove the MongoDB _id field
-        console.log('getMatchDataList match:', match);
         const matchObject = match as WithId<MatchData>;
         objectList.push(matchObject);
       }
     }
-    //console.log('objectList', objectList);
     
     if (objectList.every((item) => item === null)) {
       console.log('No matches found in the database, fetching from Riot API');
@@ -140,6 +178,24 @@ export async function createMatches(matchIdList: string[], platformQuery:string)
   }
 }
 
+export async function createMatchesObj(matchIdList: string[], platformQuery:string) {
+  try {
+    const db = await getDatabase();
+
+    const fetchData = await fetchMatchesfromRiot(matchIdList, platformQuery);
+    const result = await db.collection('matches').insertMany(fetchData);
+
+
+    
+    if (result.acknowledged) return fetchData;
+    throw new Error('Failed to add matches to collection');
+
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    throw error;
+  }
+}
+
 type MatchData = {
   metadata: {
     matchId: string;
@@ -162,7 +218,6 @@ type MatchData = {
 export async function createMatchElements(matchDataList: MatchData[], platformQuery: string) {
   try {
     const db = await getDatabase();
-    //const result = await db.collection('matches').insertMany(matchDataList);
     let matchElements = new Array<React.ReactElement>();
     matchDataList.map((matchData) => {
       const element:React.ReactElement = (
@@ -186,9 +241,7 @@ export async function createMatchElements(matchDataList: MatchData[], platformQu
     });
 
     
-    //if (result.acknowledged) 
     return matchElements;
-    throw new Error('Failed to add matches to collection');
   } catch (error) {
     console.error('Error creating match elements:', error);
     throw error;

@@ -1,7 +1,6 @@
 
 'use server';
-import { platform } from 'os';
-import {createUser, getUserbyGametag, getMatchDataList, createMatches} from '../server/Db';
+import {createUser, getUserbyGametag, getMatchDataList, createMatches, getMatchDataListfromDB, createMatchesObj} from '../server/Db';
 
 export async function getUserbyGametagAction(gametag: string) {
   try {
@@ -39,6 +38,23 @@ export async function createMatchesAction(matchIdList: string[], platformQuery: 
   }
 }
 
+export async function getMatchDataListfromDBAction(matchIdList: string[], platformQuery: string) {
+  try {
+    const result = await getMatchDataListfromDB(matchIdList, platformQuery);
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export async function createMatchesObjAction(matchIdList: string[], platformQuery: string) {
+  try {
+    const result = await createMatchesObj(matchIdList, platformQuery);
+    return { success: true, data: result };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
 /*
 export async function getUserAction(userId) {
   try {

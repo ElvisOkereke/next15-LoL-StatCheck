@@ -1,10 +1,10 @@
 'use client'
-import React, { use } from 'react'
+import React from 'react'
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect }  from 'react';
 import { getUserbyGametagAction, createUserAction, getMatchDataListAction, createMatchesAction } from '../components/actions/dbActions';
 import SearchBar from '../components/client/SearchBar';
-import { match } from 'assert';
+
 
 
 function Profile() {
@@ -63,9 +63,9 @@ function Profile() {
             let matchesData;
             
             try {
-                if (profileData.matches === null) {
-                setMatchesLoading(true);
-                return;
+                if (profileData === null) {
+                    setMatchesLoading(true);
+                    return;
                 }
                 matchesData = await getMatchDataListAction(profileData.matches.slice(renderedMatchesL,renderedMatchesR), platformQuery);
                 console.log('matchesData', matchesData);
