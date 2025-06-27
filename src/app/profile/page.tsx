@@ -1,9 +1,10 @@
 'use client'
-import React from 'react'
+import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect }  from 'react';
-import { getUserbyGametagAction, createUserAction, getMatchDataListAction, createMatchesAction } from '../components/actions/dbActions';
+import { getUserbyGametagAction, createUserAction, getMatchDataListAction, createMatchesAction, getMatchDataListfromDBAction, createMatchesObjAction } from '../components/actions/dbActions';
 import SearchBar from '../components/client/SearchBar';
+import MatchHistory from '../components/client/MatchHistory'
 
 
 
@@ -67,10 +68,10 @@ function Profile() {
                     setMatchesLoading(true);
                     return;
                 }
-                matchesData = await getMatchDataListAction(profileData.matches.slice(renderedMatchesL,renderedMatchesR), platformQuery);
-                console.log('matchesData', matchesData);
+                matchesData = await getMatchDataListfromDBAction(profileData.matches.slice(renderedMatchesL,renderedMatchesR), platformQuery);
+                //console.log('matchesData', matchesData);
                 if (matchesData.data === null) {
-                    let createMatchesResponse = await createMatchesAction(profileData.matches.slice(renderedMatchesL,renderedMatchesR), platformQuery);
+                    let createMatchesResponse = await createMatchesObjAction(profileData.matches.slice(renderedMatchesL,renderedMatchesR), platformQuery);
                     //console.log('createUserResponse', createUserResponse.success);
                     if (createMatchesResponse.success) {
                         matchesData = createMatchesResponse;
@@ -121,7 +122,8 @@ function Profile() {
     }
    
   return (
-    <div>
+    <Suspense fallback={<div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>Loading...</div>}>
+      <div>
         <SearchBar/>   
         <h1 style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>{searchQuery}'s Profile Page ({regionQuery}) </h1>
         <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
@@ -146,14 +148,13 @@ function Profile() {
             ) : (
                 <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>
                     {Array.isArray(matchData) && matchData.length > 0
-                        ? matchData.map((match: any, idx: number) => (
-                            <div key={idx}>{match}</div>
-                        ))
+                        ? <MatchHistory id={profileData.puuid} matchData={matchData} />
                         : "No matches found."}
                 </div>
             )}
         </div>
-    </div>
+      </div>
+    </Suspense>
   )
 }
 

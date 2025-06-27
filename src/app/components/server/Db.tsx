@@ -1,6 +1,6 @@
 import 'server-only'
 import { MongoClient, ServerApiVersion, WithId } from 'mongodb';
-
+import { MatchData } from '@/app/types/types'
 
 // Extend the global object to include _mongoClientPromise
 declare global {
@@ -151,7 +151,7 @@ export async function getMatchDataList(matchIdList: string[], platformQuery:stri
     }
 
 
-  return createMatchElements(objectList.filter((item): item is MatchData => item !== null), platformQuery);
+  return objectList.filter((item): item is MatchData => item !== null);
     
     
   } catch (error) {
@@ -166,10 +166,8 @@ export async function createMatches(matchIdList: string[], platformQuery:string)
 
     const fetchData = await fetchMatchesfromRiot(matchIdList, platformQuery);
     const result = await db.collection('matches').insertMany(fetchData);
-    const elementList = await createMatchElements(fetchData, platformQuery);
 
-    
-    if (result.acknowledged) return elementList;
+    if (result.acknowledged) return fetchData;
     throw new Error('Failed to add matches to collection');
 
   } catch (error) {
@@ -196,58 +194,7 @@ export async function createMatchesObj(matchIdList: string[], platformQuery:stri
   }
 }
 
-type MatchData = {
-  metadata: {
-    matchId: string;
-  };
-  info: {
-    gameMode: string;
-    gameType: string;
-    gameDuration: number;
-    participants: Array<{
-      puuid: string;
-      summonerName: string;
-      championName: string;
-      kills: number;
-      deaths: number;
-      assists: number;
-    }>;
-  };
-};
 
-export async function createMatchElements(matchDataList: MatchData[], platformQuery: string) {
-  try {
-    const db = await getDatabase();
-    let matchElements = new Array<React.ReactElement>();
-    matchDataList.map((matchData) => {
-      const element:React.ReactElement = (
-        <div className='match-element' key={matchData.metadata.matchId} style={{ border: '1px solid #ccc', padding: '10px', margin: '10px 0'}}>
-          <h3>Match ID: {matchData.metadata.matchId}</h3>
-          <p>Platform: {platformQuery}</p>
-          <p>Game Mode: {matchData.info.gameMode}</p>
-          <p>Game Type: {matchData.info.gameType}</p>
-          <p>Game Duration: {matchData.info.gameDuration} seconds</p>
-          <h4>Participants:</h4>
-          <ul>
-            {matchData.info.participants.map((participant) => (
-              <li key={participant.puuid}>
-                {participant.summonerName} ({participant.championName}): {participant.kills} kills, {participant.deaths} deaths, {participant.assists} assists
-              </li>
-            ))}
-          </ul>
-        </div>
-      );
-      matchElements.push(element);
-    });
-
-    
-    return matchElements;
-  } catch (error) {
-    console.error('Error creating match elements:', error);
-    throw error;
-  }
-
-}
 
 
 export const fetchMatchesfromRiot = async (matchList:string[], platformQuery:string, API_KEY:string = process.env.NEXT_PUBLIC_RIOT_API_KEY as string) => {
