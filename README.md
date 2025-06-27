@@ -183,7 +183,7 @@ src/
 ## 📱 Screenshots
 
 ### Player Profile
-![Player Profile](https://github.com/user-attachments/assets/bbb29869-c336-4fdb-a59b-98a1b6289d3b)
+![image](https://github.com/user-attachments/assets/9df4ff4d-d6cd-4adf-bd0c-23c412cc9a9f)
 
 ### System Architecture
 ![System Design](https://github.com/user-attachments/assets/fcacb4fc-3f8b-4ace-9b2a-081e21795a1f)
