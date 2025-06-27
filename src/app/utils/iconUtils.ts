@@ -87,8 +87,8 @@ export const getItemIcon = (itemId: number | string): string => {
 }
 
 // Get summoner spell icon URL by spell ID
-export const getSummonerSpellIcon = (spellId: number | string): string => {
-  if (!spellId && spellId !== 0) return ''
+export const getSummonerSpellIcon = (spellId: number | string): string | null => {
+  if (!spellId && spellId !== 0) return null
   
   const cacheKey = `spell_${spellId}`
   if (iconCache.has(cacheKey)) {

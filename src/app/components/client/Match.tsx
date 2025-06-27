@@ -132,7 +132,10 @@ function Match({match, id, puuid}:MatchProps) {
                 className="champion-image"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none'
-                  e.currentTarget.nextElementSibling.style.display = 'block'
+                  const nextElement = e.currentTarget.nextElementSibling as HTMLElement
+                  if (nextElement) {
+                    nextElement.style.display = 'block'
+                  }
                 }}
               />
             )}
@@ -143,36 +146,48 @@ function Match({match, id, puuid}:MatchProps) {
           </div>
           <div className="summoner-spells">
             <div className="spell">
-              {isInitialized && currentPlayer.spell1Id ? (
-                <img 
-                  src={getSummonerSpellIcon(currentPlayer.spell1Id)} 
-                  alt={getSummonerSpellName(currentPlayer.spell1Id)}
-                  className="spell-image"
-                  title={getSummonerSpellName(currentPlayer.spell1Id)}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                    e.currentTarget.nextElementSibling.style.display = 'block'
-                  }}
-                />
-              ) : null}
-              <span style={{ display: isInitialized && currentPlayer.spell1Id ? 'none' : 'block', fontSize: '10px' }}>
+              {(() => {
+                const iconUrl = isInitialized && currentPlayer.spell1Id ? getSummonerSpellIcon(currentPlayer.spell1Id) : null
+                return iconUrl ? (
+                  <img 
+                    src={iconUrl} 
+                    alt={getSummonerSpellName(currentPlayer.spell1Id)}
+                    className="spell-image"
+                    title={getSummonerSpellName(currentPlayer.spell1Id)}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement
+                      if (nextElement) {
+                        nextElement.style.display = 'block'
+                      }
+                    }}
+                  />
+                ) : null
+              })()}
+              <span style={{ display: isInitialized && currentPlayer.spell1Id && getSummonerSpellIcon(currentPlayer.spell1Id) ? 'none' : 'block', fontSize: '10px' }}>
                 {currentPlayer.spell1Id || 'N/A'}
               </span>
             </div>
             <div className="spell">
-              {isInitialized && currentPlayer.spell2Id ? (
-                <img 
-                  src={getSummonerSpellIcon(currentPlayer.spell2Id)} 
-                  alt={getSummonerSpellName(currentPlayer.spell2Id)}
-                  className="spell-image"
-                  title={getSummonerSpellName(currentPlayer.spell2Id)}
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                    e.currentTarget.nextElementSibling.style.display = 'block'
-                  }}
-                />
-              ) : null}
-              <span style={{ display: isInitialized && currentPlayer.spell2Id ? 'none' : 'block', fontSize: '10px' }}>
+              {(() => {
+                const iconUrl = isInitialized && currentPlayer.spell2Id ? getSummonerSpellIcon(currentPlayer.spell2Id) : null
+                return iconUrl ? (
+                  <img 
+                    src={iconUrl} 
+                    alt={getSummonerSpellName(currentPlayer.spell2Id)}
+                    className="spell-image"
+                    title={getSummonerSpellName(currentPlayer.spell2Id)}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement
+                      if (nextElement) {
+                        nextElement.style.display = 'block'
+                      }
+                    }}
+                  />
+                ) : null
+              })()}
+              <span style={{ display: isInitialized && currentPlayer.spell2Id && getSummonerSpellIcon(currentPlayer.spell2Id) ? 'none' : 'block', fontSize: '10px' }}>
                 {currentPlayer.spell2Id || 'N/A'}
               </span>
             </div>
@@ -203,7 +218,10 @@ function Match({match, id, puuid}:MatchProps) {
                     title={getItemName(item)}
                     onError={(e) => {
                       e.currentTarget.style.display = 'none'
-                      e.currentTarget.nextElementSibling.style.display = 'block'
+                      const nextElement = e.currentTarget.nextElementSibling as HTMLElement
+                      if (nextElement) {
+                        nextElement.style.display = 'block'
+                      }
                     }}
                   />
                 ) : (
@@ -229,7 +247,10 @@ function Match({match, id, puuid}:MatchProps) {
                   title={getItemName(currentPlayer.trinket)}
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
-                    e.currentTarget.nextElementSibling.style.display = 'block'
+                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement
+                    if (nextElement) {
+                      nextElement.style.display = 'block'
+                    }
                   }}
                 />
               ) : (
@@ -391,35 +412,35 @@ function Match({match, id, puuid}:MatchProps) {
                   <div className="stats-grid">
                     <div className="stat-item">
                       <span className="stat-label">Gold Earned:</span>
-                      <span className="stat-value">{currentPlayer.totalGold.toLocaleString()}</span>
+                      <span className="stat-value">{(currentPlayer.totalGold || 0).toLocaleString()}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-label">Gold Per Minute:</span>
-                      <span className="stat-value">{currentPlayer.goldPerMinute.toFixed(1)}</span>
+                      <span className="stat-value">{(currentPlayer.goldPerMinute || 0).toFixed(1)}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-label">CS Per Minute:</span>
-                      <span className="stat-value">{currentPlayer.creepScorePerMinute.toFixed(1)}</span>
+                      <span className="stat-value">{(currentPlayer.creepScorePerMinute || 0).toFixed(1)}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-label">Vision Score:</span>
-                      <span className="stat-value">{currentPlayer.visionScore}</span>
+                      <span className="stat-value">{currentPlayer.visionScore || 0}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-label">Wards Placed:</span>
-                      <span className="stat-value">{currentPlayer.wardsPlaced}</span>
+                      <span className="stat-value">{currentPlayer.wardsPlaced || 0}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-label">Wards Killed:</span>
-                      <span className="stat-value">{currentPlayer.wardsKilled}</span>
+                      <span className="stat-value">{currentPlayer.wardsKilled || 0}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-label">Total Damage:</span>
-                      <span className="stat-value">{currentPlayer.totalDamageDealtToChampions.toLocaleString()}</span>
+                      <span className="stat-value">{(currentPlayer.totalDamageDealtToChampions || 0).toLocaleString()}</span>
                     </div>
                     <div className="stat-item">
                       <span className="stat-label">Damage Taken:</span>
-                      <span className="stat-value">{(currentPlayer.physicalDamageTaken + currentPlayer.magicDamageTaken + currentPlayer.trueDamageTaken).toLocaleString()}</span>
+                      <span className="stat-value">{((currentPlayer.physicalDamageTaken || 0) + (currentPlayer.magicDamageTaken || 0) + (currentPlayer.trueDamageTaken || 0)).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>

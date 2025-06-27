@@ -137,12 +137,6 @@ function Profile() {
             height="150"
             />
         </div>
-        
-        <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>
-            <p>Username: {searchQuery}</p>
-            <p>Platform: {profileData.platform}</p>
-            <p>PUUID: {profileData.puuid}</p>
-        </div>
         <div>
             {matchesError && <div style={{ color: 'White', textAlign: 'center', marginTop: '20px' }}>{matchesError}</div>}
             {matchesLoading ? (
