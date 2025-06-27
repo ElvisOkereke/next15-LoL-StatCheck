@@ -1,10 +1,21 @@
 'use client'
 import { MatchProps, ParticipantDto } from '@/app/types/types'
 import React, { useState, useMemo } from 'react'
+import { 
+  getChampionIcon, 
+  getItemIcon, 
+  getSummonerSpellIcon, 
+  getRuneIcon,
+  getQueueTypeName,
+  getItemName,
+  getSummonerSpellName
+} from '@/app/utils/iconUtils'
+import { useIcons } from '@/app/hooks/useIcons'
 
 function Match({match, id, puuid}:MatchProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'builds' | 'timeline'>('overview')
+  const { isInitialized } = useIcons()
 
   // Find the current player's data from the match
   const currentPlayer = useMemo(() => {
@@ -114,12 +125,57 @@ function Match({match, id, puuid}:MatchProps) {
 
         <div className="champion-info">
           <div className="champion-icon">
-            <span className="champion-name">{currentPlayer.championName}</span>
+            {isInitialized && (
+              <img 
+                src={getChampionIcon(currentPlayer.championName)} 
+                alt={currentPlayer.championName}
+                className="champion-image"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                  e.currentTarget.nextElementSibling.style.display = 'block'
+                }}
+              />
+            )}
+            <span className="champion-name" style={{ display: isInitialized ? 'none' : 'block' }}>
+              {currentPlayer.championName}
+            </span>
             <span className="champion-level">Level {currentPlayer.level}</span>
           </div>
           <div className="summoner-spells">
-            <div className="spell">{currentPlayer.spell1Id}</div>
-            <div className="spell">{currentPlayer.spell2Id}</div>
+            <div className="spell">
+              {isInitialized && currentPlayer.spell1Id ? (
+                <img 
+                  src={getSummonerSpellIcon(currentPlayer.spell1Id)} 
+                  alt={getSummonerSpellName(currentPlayer.spell1Id)}
+                  className="spell-image"
+                  title={getSummonerSpellName(currentPlayer.spell1Id)}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                    e.currentTarget.nextElementSibling.style.display = 'block'
+                  }}
+                />
+              ) : null}
+              <span style={{ display: isInitialized && currentPlayer.spell1Id ? 'none' : 'block', fontSize: '10px' }}>
+                {currentPlayer.spell1Id || 'N/A'}
+              </span>
+            </div>
+            <div className="spell">
+              {isInitialized && currentPlayer.spell2Id ? (
+                <img 
+                  src={getSummonerSpellIcon(currentPlayer.spell2Id)} 
+                  alt={getSummonerSpellName(currentPlayer.spell2Id)}
+                  className="spell-image"
+                  title={getSummonerSpellName(currentPlayer.spell2Id)}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                    e.currentTarget.nextElementSibling.style.display = 'block'
+                  }}
+                />
+              ) : null}
+              <span style={{ display: isInitialized && currentPlayer.spell2Id ? 'none' : 'block', fontSize: '10px' }}>
+                {currentPlayer.spell2Id || 'N/A'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -138,11 +194,55 @@ function Match({match, id, puuid}:MatchProps) {
           {[currentPlayer.item0, currentPlayer.item1, currentPlayer.item2, 
             currentPlayer.item3, currentPlayer.item4, currentPlayer.item5].map((item, idx) => (
             <div key={idx} className="item-slot">
-              {item !== 0 ? <span className="item-id">{item}</span> : <div className="empty-item" />}
+              {item !== 0 ? (
+                isInitialized ? (
+                  <img 
+                    src={getItemIcon(item)} 
+                    alt={getItemName(item)}
+                    className="item-image"
+                    title={getItemName(item)}
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.nextElementSibling.style.display = 'block'
+                    }}
+                  />
+                ) : (
+                  <span className="item-id">{item}</span>
+                )
+              ) : (
+                <div className="empty-item" />
+              )}
+              {item !== 0 && isInitialized && (
+                <span className="item-id" style={{ display: 'none', fontSize: '6px' }}>
+                  {item}
+                </span>
+              )}
             </div>
           ))}
           <div className="trinket-slot">
-            {currentPlayer.trinket !== 0 ? <span className="item-id">{currentPlayer.trinket}</span> : <div className="empty-item" />}
+            {currentPlayer.trinket !== 0 ? (
+              isInitialized ? (
+                <img 
+                  src={getItemIcon(currentPlayer.trinket)} 
+                  alt={getItemName(currentPlayer.trinket)}
+                  className="item-image"
+                  title={getItemName(currentPlayer.trinket)}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none'
+                    e.currentTarget.nextElementSibling.style.display = 'block'
+                  }}
+                />
+              ) : (
+                <span className="item-id">{currentPlayer.trinket}</span>
+              )
+            ) : (
+              <div className="empty-item" />
+            )}
+            {currentPlayer.trinket !== 0 && isInitialized && (
+              <span className="item-id" style={{ display: 'none', fontSize: '6px' }}>
+                {currentPlayer.trinket}
+              </span>
+            )}
           </div>
         </div>
 
@@ -708,6 +808,28 @@ function Match({match, id, puuid}:MatchProps) {
           padding: 20px;
           text-align: center;
           border-radius: 8px;
+        }
+        
+        .champion-image {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          border: 2px solid #555;
+          object-fit: cover;
+        }
+        
+        .spell-image {
+          width: 100%;
+          height: 100%;
+          border-radius: 4px;
+          object-fit: cover;
+        }
+        
+        .item-image {
+          width: 100%;
+          height: 100%;
+          border-radius: 4px;
+          object-fit: cover;
         }
       `}</style>
     </div>

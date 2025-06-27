@@ -75,11 +75,12 @@ function Profile() {
                     //console.log('createUserResponse', createUserResponse.success);
                     if (createMatchesResponse.success) {
                         matchesData = createMatchesResponse;
+                        const parsedData = JSON.parse(matchesData.data ?? '[]');
                         if (matchData) { //TODO: pagination case, add button to load more matches
-                            setMatchData(matchData + (matchesData.data ?? []));
+                            setMatchData([...matchData, ...parsedData]);
                         }
                         else{
-                            setMatchData((matchesData.data ?? []));
+                            setMatchData(parsedData);
                         }
                     } else {
                         throw new Error(createMatchesResponse.error);
@@ -90,7 +91,8 @@ function Profile() {
                 }
                 else{
                     if (matchesData.data){
-                        setMatchData(matchesData.data);
+                        const parsedData = JSON.parse(matchesData.data);
+                        setMatchData(parsedData);
                         //console.log('userData.data', matchData);
                         //matchList.push(...(matchesData.data ?? []));
                     }

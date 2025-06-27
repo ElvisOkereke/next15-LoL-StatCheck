@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react'
 import { MatchData, MatchHistoryProps, ParticipantDto } from '@/app/types/types'
 import Match from './Match'
+import { useIcons } from '@/app/hooks/useIcons'
 
 type SortOption = 'recent' | 'oldest' | 'kda' | 'damage' | 'duration'
 type FilterOption = 'all' | 'wins' | 'losses' | 'ranked' | 'normal'
@@ -11,6 +12,7 @@ function MatchHistory({matchData, id}: MatchHistoryProps) {
   const [filterBy, setFilterBy] = useState<FilterOption>('all')
   const [expandAll, setExpandAll] = useState(false)
   const [showStats, setShowStats] = useState(true)
+  const { isLoading: iconsLoading, isInitialized: iconsInitialized, error: iconsError } = useIcons()
 
   // Debug logging to understand data structure
   console.log('MatchHistory received:', { matchData, id, type: typeof matchData, isArray: Array.isArray(matchData) })

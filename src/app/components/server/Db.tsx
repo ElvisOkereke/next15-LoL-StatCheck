@@ -111,7 +111,8 @@ export async function getMatchDataListfromDB(matchIdList: string[], platformQuer
     }
 
 
-  return objectList.filter((item): item is MatchData => item !== null);
+  const filteredData = objectList.filter((item): item is MatchData => item !== null);
+  return JSON.stringify(filteredData);
     
     
   } catch (error) {
@@ -185,7 +186,7 @@ export async function createMatchesObj(matchIdList: string[], platformQuery:stri
 
 
     
-    if (result.acknowledged) return fetchData;
+    if (result.acknowledged) return JSON.stringify(fetchData);
     throw new Error('Failed to add matches to collection');
 
   } catch (error) {
